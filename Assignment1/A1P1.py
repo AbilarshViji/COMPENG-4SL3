@@ -1,106 +1,97 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def computeModel(x, w, M):
-    model = []
-    for points in x:
-        model.append(np.dot(w, points))
-    return model
-
-def computePoly(x, w, M):
-    poly = []
-    for val in x:
-        temp = 0
+def computePrediction(x, w, M): #Computes prediction on a given set of x points
+    pred = []
+    for val in x: #Iterate through each value in list x
+        curr = 0
         for m in range(M+1):
-            temp += w[m]*(val**m)
-        poly.append(temp)
-    return poly
+            curr += w[m]*(val**m) #Sum predicted value
+        pred.append(curr) #Append prediction to list
+    return pred
 
 figCount = 0
-def plotModel(model, x, M, w, train, title):
-    global figCount
+def plotModel(model, x, M, w, points, title): #Plots data with true function, and predicted function
+    global figCount #Keeps track of figure count
     plt.figure(figCount)
     figCount += 1
-    plt.scatter(x, train, color="green")
-    plt.title(title+ " Data, M = " + str(M))
+    plt.scatter(x, points, color="green") #Plot points
+    plt.title(title+ " M = " + str(M))
     x = np.linspace(0.,1.,100)
-
-    plt.plot(x, poly, color="cyan", linewidth=2)
-    plt.plot(x, np.sin(4*np.pi*x), color="magenta", linewidth=2)
+    poly = computePrediction(x, w, M) #Compute values for polynomial function based on w
+    plt.plot(x, poly, color="cyan", linewidth=2) #Plot polynomial function
+    plt.plot(x, np.sin(4*np.pi*x), color="magenta", linewidth=2) #Plot actual function
     plt.legend(["Predicted Function", "Actual Function", "Actual Points"])
-    # plt.show()
+    plt.savefig(title+str(M)+".png")
 
-def calcError(predictedList, actualList):
+def calcError(predictedList, actualList): #Computes least squares error
     error = 0
-    for predict, actual in zip(predictedList, actualList):
-        error += (predict-actual)**2
-
+    for predict, actual in zip(predictedList, actualList): #Iterate through both predicted and actual list
+        error += (predict-actual)**2 #Sum difference squared
     return error/len(predictedList)
 
-# N = 10, num training samples
-# D = 0-9, num features
-Xtrain = np.linspace(0.,1.,10) # training set
-Xvalid = np.linspace(0.,1.,100) # validation set
-np.random.seed(1727)
-tvalid = np.sin(4*np.pi*Xvalid) + 0.3 * np.random.randn(100)
-ttrain = np.sin(4*np.pi*Xtrain) + 0.3 * np.random.randn(10)
+def computeTrainingData(maxM, xTrain): #Computes training data
+    trainingData = np.ones(len(xTrain)) #Initialize training data with dummy
+    for m in range(1, maxM + 1): #Iterate through remaining M values
+        row = []
+        for x in xTrain:
+            row.append(x**m) #Append x**m to row
+        trainingData = np.vstack((trainingData, row)) #Add row to training data
+    trainingData = np.transpose(trainingData) #Transpose final matrix
+    return trainingData
 
-def computeTrainingData(maxM, Xtrain): #refactor XtrainD to smth better
-    XtrainD = np.ones(len(Xtrain))
-    if maxM > 0:
-        XtrainD = np.vstack((XtrainD, Xtrain))
-    for i in range(2, maxM + 1):
-        temp = []
-        for j in Xtrain:
-            temp.append(j**i)
-        XtrainD = np.vstack((XtrainD, temp))
-    XtrainD = np.transpose(XtrainD)
-    return XtrainD
+#N = 10, num training samples
+#D = 0-9, num features
+xTrain = np.linspace(0.,1.,10) #training set
+xValid = np.linspace(0.,1.,100) #validation set
+np.random.seed(1727)
+tTrain = np.sin(4*np.pi*xTrain) + 0.3 * np.random.randn(10)
+tValid = np.sin(4*np.pi*xValid) + 0.3 * np.random.randn(100) 
+
 maxM = 9
 
 trainingError = []
 validationError = []
 
-for m in range(maxM+1):
-    XtrainD = computeTrainingData(m, Xtrain)
-    A = np.dot(np.transpose(XtrainD), XtrainD)
-    c = np.dot(np.transpose(XtrainD), ttrain)
-    if m == 0:
+for m in range(maxM+1): #Iterate over all M values
+    trainingData = computeTrainingData(m, xTrain) #Generate training data
+    A = np.dot(np.transpose(trainingData), trainingData)
+    c = np.dot(np.transpose(trainingData), tTrain)
+    #Compute w weights
+    if m == 0: #Edge case for m=0 since np.linalg.inv does not support 1D array
         w = [np.dot(1/A, c)]
     else:    
         w = np.dot(np.linalg.inv(A), c)
-   
-    model = computeModel(XtrainD, w, m)
+    
+    trainingOutput = computePrediction(xTrain, w, m) #Compute training prediction
+    plotModel(trainingOutput, xTrain, m, w, tTrain, "Training Data") #Plot training data
+    trainingError.append(calcError(trainingOutput, tTrain)) #Append training error
 
-    plotModel(model, Xtrain, m, w, ttrain, "Training")
-    trainingError.append(calcError(model, ttrain))
+    validationOutput = computePrediction(xValid, w, m) #Compute validation prediction
+    plotModel(validationOutput, xValid, m, w, tValid, "Validation Data") #Plot validation data
+    validationError.append(calcError(validationOutput, tValid)) #Append validation error
 
-    XvalidD = computeTrainingData(m, Xvalid)
-    model = computeModel(XvalidD, w, m)
-    plotModel(model, Xvalid, m, w, tvalid, "Validation")
-    validationError.append(calcError(model, tvalid))
+#Plot training and validation error
 plt.figure(figCount)
 figCount += 1
 plt.plot(trainingError,marker='o', linewidth=2)
 plt.plot(validationError, marker='o', linewidth=2)
 plt.title("Training and Validation Error")
 plt.legend(["Training Error", "Validation Error"])
+plt.savefig("Error.png")
+
+#Initialize B matrix for regularization
 B = np.identity(10)
 B[0][0] = 0
-train = []
-valid = []
 
 m=9
-for lam in [-33, -4]:
-    w = np.dot(np.linalg.inv(A+(len(Xtrain)/2*B*2*np.exp(lam))), c)
-    # print(w)
-    regularizedModel = computeModel(XtrainD, w, m)
-    train.append((lam, calcError(regularizedModel, ttrain)))
-    regularizedValidationModel = computeModel(XvalidD, w, m)
-    valid.append((lam, calcError(regularizedValidationModel, tvalid)))
-    plt.figure(figCount)
-    plotModel(regularizedModel, Xvalid, m, w, tvalid, "Regularization" + str(lam))
-# print(sorted(train, key=lambda x:x[1]))
-print(sorted(valid, key=lambda x:x[1]))
+for lam in [-20, -4]: #Iterate over best and underfitting lambda
+    w = np.dot(np.linalg.inv(A+(len(xTrain)/2*B*2*np.exp(lam))), c) #Compute W based on lambda
+
+    regularizedTrainingOutput = computePrediction(xTrain, w, m) #Compute training regularized prediction
+    plotModel(regularizedTrainingOutput, xTrain, m, w, tTrain, "Training Data, Regularization " + str(lam)) #Plot regularized training prediction
+
+    regularizedValidationOutput = computePrediction(xValid, w, m) #Compute validation regularized prediction
+    plotModel(regularizedValidationOutput, xValid, m, w, tValid, "Validation Data, Regularization " + str(lam)) #Plot regularized validation prediction
 
 plt.show()
