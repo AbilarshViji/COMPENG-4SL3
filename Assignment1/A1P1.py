@@ -7,6 +7,15 @@ def computeModel(x, w, M):
         model.append(np.dot(w, points))
     return model
 
+def computePoly(x, w, M):
+    poly = []
+    for val in x:
+        temp = 0
+        for m in range(M+1):
+            temp += w[m]*(val**m)
+        poly.append(temp)
+    return poly
+
 figCount = 0
 def plotModel(model, x, M, w, train, title):
     global figCount
@@ -15,12 +24,6 @@ def plotModel(model, x, M, w, train, title):
     plt.scatter(x, train, color="green")
     plt.title(title+ " Data, M = " + str(M))
     x = np.linspace(0.,1.,100)
-    poly = []
-    for val in x:
-        temp = 0
-        for m in range(M+1):
-            temp += w[m]*(val**m)
-        poly.append(temp)
 
     plt.plot(x, poly, color="cyan", linewidth=2)
     plt.plot(x, np.sin(4*np.pi*x), color="magenta", linewidth=2)
@@ -57,26 +60,15 @@ maxM = 9
 
 trainingError = []
 validationError = []
-m=0
-XtrainD = computeTrainingData(m, Xtrain)
-A = np.dot(np.transpose(XtrainD), XtrainD)
-c = np.dot(np.transpose(XtrainD), ttrain)
 
-w = [np.dot(1/A, c)]
-model = computeModel(XtrainD, w, m)
-
-plotModel(model, Xtrain, m, w, ttrain, "Training")
-trainingError.append(calcError(model, ttrain))
-
-XvalidD = computeTrainingData(m, Xvalid)
-model = computeModel(XvalidD, w, m)
-plotModel(model, Xvalid, m, w, tvalid, "Validation")
-validationError.append(calcError(model, tvalid))
-for m in range(1, maxM+1):
+for m in range(maxM+1):
     XtrainD = computeTrainingData(m, Xtrain)
     A = np.dot(np.transpose(XtrainD), XtrainD)
     c = np.dot(np.transpose(XtrainD), ttrain)
-    w = np.dot(np.linalg.inv(A), c)
+    if m == 0:
+        w = [np.dot(1/A, c)]
+    else:    
+        w = np.dot(np.linalg.inv(A), c)
    
     model = computeModel(XtrainD, w, m)
 
@@ -111,6 +103,4 @@ for lam in [-33, -4]:
 # print(sorted(train, key=lambda x:x[1]))
 print(sorted(valid, key=lambda x:x[1]))
 
-
 plt.show()
-
