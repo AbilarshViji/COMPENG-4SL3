@@ -22,7 +22,7 @@ def plotModel(model, x, M, w, points, title): #Plots data with true function, an
     plt.plot(x, poly, color="cyan", linewidth=2) #Plot polynomial function
     plt.plot(x, np.sin(4*np.pi*x), color="magenta", linewidth=2) #Plot actual function
     plt.legend(["Predicted Function", "Actual Function", "Actual Points"])
-    plt.savefig(title+str(M)+".png")
+    plt.savefig(title+str(M)+".png", dpi=80)
 
 def calcError(predictedList, actualList): #Computes least squares error
     error = 0
