@@ -22,38 +22,39 @@ print(N)
 
 # split data into trainig and test sets
 from sklearn.model_selection import train_test_split
-X_train, X_test, t_train, t_test = train_test_split(X, t, test_size = 1/4, random_state = 6)
-print(X_train.shape) # X_train is 2D, but y_train is 1D
-print(t_train.shape)
-M = len(X_test) #number rows in test set
-N = len(X_train) #number rows in train set
+# X_train, X_test, t_train, t_test = train_test_split(X, t, test_size = 1/4, random_state = 6)
+# print(X_train.shape) # X_train is 2D, but y_train is 1D
+# print(t_train.shape)
+M = len(X) #number rows in test set
+N = len(X) #number rows in train set
 print(N, M)
-
+t_train, t_test = t, t
 # add dummy in trainig set
 new_col=np.ones(N)
-print(new_col[:8])
-X1_train = np.insert(X_train, 0, new_col, axis=1)
-print(X1_train.shape)
+# print(new_col[:8])
+X1_train = np.insert(X, 0, new_col, axis=1)
+print(X1_train)
 
 # add dummy in test set
 new_col=np.ones(M)
-print(new_col[:8])
-X1_test = np.insert(X_test, 0, new_col, axis=1)
-print(X1_test.shape)
+# print(new_col[:8])
+X1_test = np.insert(X, 0, new_col, axis=1)
+# print(X1_test)
 
 # perform linear rgression
 A = np.dot(X1_train.T,X1_train)
-#print(A)
+print("a",A)
 A1=np.linalg.inv(A)
 #print(A1)
 t1=np.dot(X1_train.T,t_train)
-#print(t1)
+print("c", t1)
 w = np.dot(A1,t1)
-#print(w)
+print("w", w)
 
 #compute predictions on trainig set
 y_train_predict = np.dot(X1_train,w)
-#print(y_train_predict[:8])
+print(X1_train.shape, w.shape)
+print(y_train_predict[:8])
 
 #compute training error
 diff = np.subtract(t_train, y_train_predict)
