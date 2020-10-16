@@ -22,7 +22,19 @@ def plotModel(model, x, M, w, points, title): #Plots data with true function, an
     plt.plot(x, poly, color="cyan", linewidth=2) #Plot polynomial function
     plt.plot(x, np.sin(4*np.pi*x), color="magenta", linewidth=2) #Plot actual function
     plt.legend(["Predicted Function", "Actual Function", "Actual Points"])
-    plt.savefig(title+str(M)+".png", dpi=80)
+    plt.savefig(title+str(M)+".png")
+
+def plotError(x, trainingError, validationError, title, xLabel):
+    #Plot training and validation error
+    global figCount #Keeps track of figure count
+    plt.figure(figCount)
+    figCount += 1
+    plt.plot(x, trainingError, marker="o", linewidth=2)
+    plt.plot(x, validationError, marker="o", linewidth=2)
+    plt.title(title)
+    plt.xlabel(xLabel)
+    plt.legend(["Training Error", "Validation Error"])
+    plt.savefig(title + ".png")
 
 def calcError(predictedList, actualList): #Computes least squares error
     error = 0
@@ -71,27 +83,29 @@ for m in range(maxM+1): #Iterate over all M values
     plotModel(validationOutput, xValid, m, w, tValid, "Validation Data") #Plot validation data
     validationError.append(calcError(validationOutput, tValid)) #Append validation error
 
-#Plot training and validation error
-plt.figure(figCount)
-figCount += 1
-plt.plot(trainingError,marker='o', linewidth=2)
-plt.plot(validationError, marker='o', linewidth=2)
-plt.title("Training and Validation Error")
-plt.legend(["Training Error", "Validation Error"])
-plt.savefig("Error.png")
+plotError(range(len(trainingError)), trainingError, validationError, "Training and Validation Error", "M")
 
 #Initialize B matrix for regularization
 B = np.identity(10)
 B[0][0] = 0
 
 m=9
-for lam in [-20, -4]: #Iterate over best and underfitting lambda
+lambdaVals = [-20, -4]
+regTrainError = []
+regValError = []
+for lam in range(-35, 0): #Iterate over best and underfitting lambda
     w = np.dot(np.linalg.inv(A+(len(xTrain)/2*B*2*np.exp(lam))), c) #Compute W based on lambda
 
     regularizedTrainingOutput = computePrediction(xTrain, w, m) #Compute training regularized prediction
-    plotModel(regularizedTrainingOutput, xTrain, m, w, tTrain, "Training Data, Regularization " + str(lam)) #Plot regularized training prediction
+    regTrainError.append(calcError(regularizedTrainingOutput, tTrain))
 
     regularizedValidationOutput = computePrediction(xValid, w, m) #Compute validation regularized prediction
-    plotModel(regularizedValidationOutput, xValid, m, w, tValid, "Validation Data, Regularization " + str(lam)) #Plot regularized validation prediction
+    regValError.append(calcError(regularizedValidationOutput, tValid))
+
+    if lam in lambdaVals: #if lambda is preselected as best or underfitting, plot model
+        plotModel(regularizedTrainingOutput, xTrain, m, w, tTrain, "Training Data, Regularization " + str(lam)) #Plot regularized training prediction
+        plotModel(regularizedValidationOutput, xValid, m, w, tValid, "Validation Data, Regularization " + str(lam)) #Plot regularized validation prediction
+
+plotError(range(-35, 0), regTrainError, regValError, "Regularized Training and Validation Error", "Lambda")
 
 plt.show()
