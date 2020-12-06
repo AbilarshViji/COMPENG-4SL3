@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from sklearn.datasets import load_boston
-#boston = load_boston()
-#print(boston.DESCR)
+boston = load_boston()
+print(boston.DESCR)
 
 #import data set from scikit
 from sklearn.datasets import load_boston

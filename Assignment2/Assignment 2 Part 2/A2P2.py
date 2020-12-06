@@ -9,7 +9,7 @@ import time
 dataset = pd.read_csv('spambase.data') #load data
 X = dataset.iloc[:, :-1].values
 t = dataset.iloc[:, -1].values
-rand = 4024
+rand = 1727
 xTrain, xTest, tTrain, tTest = train_test_split(X, t, test_size = 1/3, random_state = rand) #split data
 
 def decisionTree(xTrain, xTest, tTrain, tTest, rand): #Train and get error for decision tree classifiers with numLeaves between 2 and 400
