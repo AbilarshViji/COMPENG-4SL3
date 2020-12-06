@@ -13,7 +13,8 @@ def computeWeights(trainingData, targetData): #Computes weights
     return w
 
 def calcError(predictedList, actualList): #Computes least squares error
-    diff = np.subtract(actualList, predictedList)
+    # diff = np.subtract(actualList, predictedList)
+    diff = actualList - predictedList
     return np.dot(diff, diff.T)/len(diff)
 
 def average(listToAverage): #Computes average
@@ -79,7 +80,7 @@ rand = 1727
 x, target = skds.load_boston(return_X_y=True)
 
 #Splits training and testing set
-xTrain, xTest, tTrain, tTest = skms.train_test_split(x, target, test_size = 1/4, random_state = rand)
+xTrain, xTest, tTrain, tTest = skms.train_test_split(x, target, test_size = 1/5, random_state = rand)
 xTrain = xTrain.T
 xTest = xTest.T
 
@@ -89,8 +90,8 @@ plotModel(ranking, crossValidationError, testingError, "Errors vs Size of Subset
 #Initialize basis function dataset
 logTrain = np.log(xTrain[0])
 logTest = np.log(xTest[0])
-sqTrain = np.power(xTrain, 2)
-sqTest = np.power(xTest, 2)
+sqTrain = np.power(xTrain, 1/4)
+sqTest = np.power(xTest, 1/4)
 sqrtTrain = np.sqrt(xTrain)
 sqrtTest = np.sqrt(xTest)
 
